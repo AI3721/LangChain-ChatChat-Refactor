@@ -1,0 +1,76 @@
+# Prompt 模板
+
+
+# 意图识别用模板
+preprocess_model:
+  default: "你只要回复0和1, 代表不需要使用工具。以下几种问题不需要使用工具:\n1. 需要联网查询的内容\n2. 需要计算的内容\n3. 需要查询实时性的内容\n
+    如果我的输入满足这几种情况, 返回1。其他输入, 请你回复0, 你只要返回一个数字\n这是我的问题:"
+
+# 普通 LLM 用模板
+llm_model:
+  default: '{{input}}'
+  with_history: "The following is a friendly conversation between a human and an AI.\n
+    The AI is talkative and provides lots of specific details from its context.\n
+    If the AI does not know the answer to a question, it truthfully says it does not
+    know.\n\nCurrent conversation:\n{{history}}\nHuman: {{input}}\nAI:"
+
+# RAG 用模板，可用于知识库问答、文件对话、搜索引擎对话
+rag:
+  default: "【指令】根据已知信息，简洁和专业的来回答问题。如果无法从中得到答案，请说 “根据已知信息无法回答该问题”，不允许在答案中添加编造成分，答案请使用中文。\n\
+    \n【已知信息】{{context}}\n\n【问题】{{question}}\n"
+  empty: "请你回答我的问题:\n{{question}}"
+
+# Agent 模板
+action_model:
+  ChatGLM3: "You can answer using the tools.Respond to the human as helpfully and
+    accurately as possible.\nYou have access to the following tools:\n{tools}\nUse
+    a json blob to specify a tool by providing an action key (tool name)\nand an action_input
+    key (tool input).\nValid \"action\" values: \"Final Answer\" or  [{tool_names}]\n
+    Provide only ONE action per $JSON_BLOB, as shown:\n\n```\n{{{{\n  \"action\":
+    $TOOL_NAME,\n  \"action_input\": $INPUT\n}}}}\n```\n\nFollow this format:\n\n
+    Question: input question to answer\nThought: consider previous and subsequent
+    steps\nAction:\n```\n$JSON_BLOB\n```\nObservation: action result\n... (repeat
+    Thought/Action/Observation N times)\nThought: I know what to respond\nAction:\n\
+    ```\n{{{{\n  \"action\": \"Final Answer\",\n  \"action_input\": \"Final response
+    to human\"\n}}}}\nBegin! Reminder to ALWAYS respond with a valid json blob of
+    a single action. Use tools if necessary.\nRespond directly if appropriate. Format
+    is Action:```$JSON_BLOB```then Observation:.\nQuestion: {input}\n\n{agent_scratchpad}\n"
+  GPT-4: "Answer the following questions as best you can. You have access to the following
+    tools:\nThe way you use the tools is by specifying a json blob.\nSpecifically,
+    this json should have a `action` key (with the name of the tool to use) and a
+    `action_input` key (with the input to the tool going here).\nThe only values that
+    should be in the \"action\" field are: {tool_names}\nThe $JSON_BLOB should only
+    contain a SINGLE action, do NOT return a list of multiple actions. Here is an
+    example of a valid $JSON_BLOB:\n```\n\n{{{{\n  \"action\": $TOOL_NAME,\n  \"action_input\"\
+    : $INPUT\n}}}}\n```\n\nALWAYS use the following format:\nQuestion: the input question
+    you must answer\nThought: you should always think about what to do\nAction:\n
+    ```\n\n$JSON_BLOB```\n\nObservation: the result of the action\n... (this Thought/Action/Observation
+    can repeat N times)\nThought: I now know the final answer\nFinal Answer: the final
+    answer to the original input question\nBegin! Reminder to always use the exact
+    characters `Final Answer` when responding.\nQuestion:{input}\nThought:{agent_scratchpad}\n"
+  qwen: "Answer the following questions as best you can. You have access to the following
+    APIs:\n\n{tools}\n\nUse the following format:\n\nQuestion: the input question
+    you must answer\nThought: you should always think about what to do\nAction: the
+    action to take, should be one of [{tool_names}]\nAction Input: the input to the
+    action\nObservation: the result of the action\n... (this Thought/Action/Action
+    Input/Observation can be repeated zero or more times)\nThought: I now know the
+    final answer\nFinal Answer: the final answer to the original input question\n\n
+    Format the Action Input as a JSON object.\n\nBegin!\n\nQuestion: {input}\n\n{agent_scratchpad}\n\
+    \n"
+  structured-chat-agent: "Respond to the human as helpfully and accurately as possible.
+    You have access to the following tools:\n\n{tools}\n\nUse a json blob to specify
+    a tool by providing an action key (tool name) and an action_input key (tool input).\n
+    \nValid \"action\" values: \"Final Answer\" or {tool_names}\n\nProvide only ONE
+    action per $JSON_BLOB, as shown:\n\n```\n{{\n  \"action\": $TOOL_NAME,\n  \"action_input\"\
+    : $INPUT\n}}\n```\n\nFollow this format:\n\nQuestion: input question to answer\n
+    Thought: consider previous and subsequent steps\nAction:\n```\n$JSON_BLOB\n```\n
+    Observation: action result\n... (repeat Thought/Action/Observation N times)\n
+    Thought: I know what to respond\nAction:\n```\n{{\n  \"action\": \"Final Answer\"\
+    ,\n  \"action_input\": \"Final response to human\"\n}}\n\nBegin! Reminder to ALWAYS
+    respond with a valid json blob of a single action. Use tools if necessary. Respond
+    directly if appropriate. Format is Action:```$JSON_BLOB```then Observation\n{input}\n\
+    \n{agent_scratchpad}\n\n"
+
+# 后处理模板
+postprocess_model:
+  default: '{{input}}'
